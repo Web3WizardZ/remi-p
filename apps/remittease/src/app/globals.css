@@ -1,0 +1,216 @@
+/* Tailwind v4 */
+@import "tailwindcss";
+
+/* ====== REMITTEASE FINTECH THEME ====== */
+
+
+@theme {
+  /* Base neutrals */
+  --color-background: hsl(210 17% 96%);
+  --color-foreground: hsl(210 24% 16%);
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(210 24% 16%);
+  --color-border: hsl(210 20% 88%);
+  --color-muted: hsl(210 17% 94%);
+  --color-muted-foreground: hsl(210 16% 50%);
+  --color-ring: hsl(200 100% 50%); /* Trust blue ring */
+
+  /* RemittEase brand palette - financial trust colors */
+  --brand-primary: 200 100% 42%;    /* Deep trust blue */
+  --brand-secondary: 195 85% 55%;   /* Lighter blue */
+  --brand-accent: 175 70% 45%;      /* Teal accent */
+  --brand-success: 155 65% 45%;     /* Financial green */
+
+  /* Gradients for different elements */
+  --gradient-primary: linear-gradient(135deg, hsl(200 100% 42%), hsl(195 85% 55%));
+  --gradient-success: linear-gradient(135deg, hsl(155 65% 45%), hsl(165 70% 50%));
+  --gradient-accent: linear-gradient(135deg, hsl(175 70% 45%), hsl(185 75% 50%));
+
+  /* Action-specific colors */
+  --send-1: 200 100% 42%;     /* Send money - primary blue */
+  --send-2: 195 85% 50%;
+  --receive-1: 155 65% 45%;   /* Receive money - green */
+  --receive-2: 165 70% 50%;
+  --scan-1: 175 70% 45%;      /* Scan/QR - teal */
+  --scan-2: 185 75% 50%;
+  --voice-1: 210 85% 55%;     /* Voice commands - lighter blue */
+  --voice-2: 220 80% 60%;
+
+  /* Advanced styling */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  
+  /* Enhanced shadows for depth */
+  --shadow-sm: 0 2px 4px hsl(210 24% 16% / 0.05);
+  --shadow-md: 0 4px 12px hsl(210 24% 16% / 0.1);
+  --shadow-lg: 0 8px 25px hsl(210 24% 16% / 0.15);
+  --shadow-xl: 0 20px 40px hsl(210 24% 16% / 0.2);
+  
+  /* Fintech-specific gradients */
+  --gradient-trust: linear-gradient(135deg, hsl(200 100% 42%) 0%, hsl(195 85% 55%) 50%, hsl(175 70% 45%) 100%);
+  --gradient-secure: linear-gradient(135deg, hsl(210 85% 25%) 0%, hsl(200 100% 42%) 100%);
+}
+
+/* Dark mode - sophisticated financial dark theme */
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground font-sans; }
+
+  .dark {
+    --color-background: hsl(210 24% 8%);
+    --color-foreground: hsl(210 17% 92%);
+    --color-card: hsl(210 24% 10% / 0.8);
+    --color-card-foreground: hsl(210 17% 92%);
+    --color-border: hsl(210 20% 20%);
+    --color-muted: hsl(210 24% 12%);
+    --color-muted-foreground: hsl(210 16% 65%);
+    --color-ring: hsl(200 100% 60%);
+  }
+}
+
+/* ====== REMITTEASE UTILITIES ====== */
+
+/* Main brand gradient - trust and reliability */
+@utility gradient-brand {
+  background: var(--gradient-trust);
+  color: white;
+  box-shadow: var(--shadow-lg);
+}
+
+/* Professional glass effect for cards */
+@utility glass-card {
+  background: hsl(var(--color-card) / 0.95);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid hsl(var(--color-border) / 0.2);
+  box-shadow: var(--shadow-md);
+}
+
+/* Subtle background for financial app feel */
+@utility app-bg {
+  background: 
+    radial-gradient(circle at 25% 25%, hsl(var(--brand-accent) / 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, hsl(var(--brand-secondary) / 0.06) 0%, transparent 50%),
+    linear-gradient(135deg, hsl(var(--color-background)) 0%, hsl(var(--color-muted)) 100%);
+}
+
+/* Action tiles - financial operations */
+@utility tile-base { 
+  @apply rounded-xl text-white font-semibold shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105;
+}
+
+@utility tile-send { 
+  background: linear-gradient(135deg, hsl(var(--send-1)), hsl(var(--send-2)));
+}
+
+@utility tile-receive { 
+  background: linear-gradient(135deg, hsl(var(--receive-1)), hsl(var(--receive-2)));
+}
+
+@utility tile-scan { 
+  background: linear-gradient(135deg, hsl(var(--scan-1)), hsl(var(--scan-2)));
+}
+
+@utility tile-voice { 
+  background: linear-gradient(135deg, hsl(var(--voice-1)), hsl(var(--voice-2)));
+}
+
+/* Enhanced button styles */
+@utility btn-primary {
+  background: var(--gradient-primary);
+  @apply text-white font-semibold px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200;
+}
+
+@utility btn-secondary {
+  background: hsl(var(--color-card));
+  border: 1px solid hsl(var(--brand-primary));
+  color: hsl(var(--brand-primary));
+  @apply font-semibold px-6 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200;
+}
+
+/* Status indicators for transactions */
+@utility status-success {
+  background: linear-gradient(135deg, hsl(var(--brand-success) / 0.1), hsl(var(--brand-success) / 0.05));
+  border: 1px solid hsl(var(--brand-success) / 0.3);
+  color: hsl(var(--brand-success));
+  @apply px-3 py-1 rounded-full text-sm font-medium;
+}
+
+@utility status-pending {
+  background: linear-gradient(135deg, hsl(45 90% 60% / 0.1), hsl(45 90% 60% / 0.05));
+  border: 1px solid hsl(45 90% 60% / 0.3);
+  color: hsl(45 90% 35%);
+  @apply px-3 py-1 rounded-full text-sm font-medium;
+}
+
+/* Voice command indicator */
+@utility voice-active {
+  background: var(--gradient-accent);
+  @apply animate-pulse rounded-full w-4 h-4;
+}
+
+/* Financial data display */
+@utility balance-card {
+  background: var(--gradient-secure);
+  @apply text-white rounded-2xl p-6 shadow-xl;
+}
+
+/* Trust indicators */
+@utility trust-badge {
+  background: hsl(var(--brand-success) / 0.1);
+  border: 1px solid hsl(var(--brand-success) / 0.3);
+  @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+}
+
+/* Layout improvements */
+@utility container-app {
+  @apply container mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+@utility card-elevation-1 {
+  box-shadow: var(--shadow-sm);
+  @apply rounded-lg border border-border;
+}
+
+@utility card-elevation-2 {
+  box-shadow: var(--shadow-md);
+  @apply rounded-xl border border-border;
+}
+
+@utility card-elevation-3 {
+  box-shadow: var(--shadow-lg);
+  @apply rounded-2xl border border-border;
+}
+
+/* Header improvements */
+@utility header-gradient {
+  background: linear-gradient(135deg, 
+    hsl(var(--color-background)) 0%, 
+    hsl(var(--brand-primary) / 0.02) 50%,
+    hsl(var(--color-background)) 100%
+  );
+  border-bottom: 1px solid hsl(var(--color-border) / 0.5);
+}
+
+/* Sidebar improvements */
+@utility sidebar-gradient {
+  background: linear-gradient(180deg, 
+    hsl(var(--color-card)) 0%, 
+    hsl(var(--brand-primary) / 0.02) 100%
+  );
+  border-right: 1px solid hsl(var(--color-border) / 0.5);
+}
+
+/* Text improvements */
+@utility text-gradient {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+:root, html { scrollbar-gutter: stable both-edges; }
+html, body { overflow-x: hidden; }

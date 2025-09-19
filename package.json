@@ -1,0 +1,14 @@
+{
+  "name": "panna-monorepo",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter remittease dev",
+    "build:sdk": "pnpm --filter panna-sdk build",
+    "build:app": "pnpm --filter example-app build",
+    "test:sdk": "pnpm --filter panna-sdk test"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}

@@ -1,6 +1,8 @@
+'use client';
+
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
-import React from 'react';
+import React, { type ElementType } from 'react';
 
 const typographyVariants = cva('', {
   variants: {
@@ -24,7 +26,8 @@ const typographyVariants = cva('', {
 export interface TypographyProps
   extends React.HTMLAttributes<HTMLElement>,
     VariantProps<typeof typographyVariants> {
-  as?: keyof JSX.IntrinsicElements;
+  /** Render as a specific intrinsic element, e.g. 'p' | 'h1' */
+  as?: keyof React.JSX.IntrinsicElements; // <-- use React.JSX here
 }
 
 export function Typography({
@@ -33,11 +36,14 @@ export function Typography({
   as,
   ...props
 }: TypographyProps) {
-  const Comp = as || (variant?.startsWith('h') ? variant : 'p') || 'p';
-  
+  // Decide element: explicit `as` wins; otherwise infer from variant; fallback 'p'
+  const Comp = (
+    as ?? (variant && `${variant}`.startsWith('h') ? (variant as 'h1' | 'h2' | 'h3' | 'h4') : 'p')
+  ) as ElementType;
+
   return (
     <Comp
-      className={cn(typographyVariants({ variant, className }))}
+      className={cn(typographyVariants({ variant }), className)}
       {...props}
     />
   );

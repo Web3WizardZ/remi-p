@@ -1,17 +1,17 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, forwardRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, type MotionProps } from 'framer-motion';
 import { LoginButton, useActiveAccount } from 'panna-sdk';
-import { 
-  Menu, 
+import {
+  Menu,
   Bell,
   Settings,
   Wallet,
   ChevronDown,
-  X
+  X,
 } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
 
@@ -29,55 +29,71 @@ const cn = (...classes: Array<string | false | null | undefined>) =>
 type ButtonVariant = 'default' | 'outline' | 'ghost' | 'gradient' | 'glass';
 type ButtonSize = 'sm' | 'default' | 'lg';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  children: React.ReactNode;
-  className?: string;
+// Omit HTML drag props so they don't clash with Framer Motion's drag handlers
+type HTMLButtonNoDrag = Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  'onDrag' | 'onDragStart' | 'onDragEnd'
+>;
+
+interface OwnButtonProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
 }
 
-const Button = ({
-  children,
-  className,
-  variant = 'default',
-  size = 'default',
-  ...props
-}: ButtonProps) => {
-  const sizeClasses =
-    size === 'sm'
-      ? 'px-3 py-1.5 text-xs h-8'
-      : size === 'lg'
-      ? 'px-6 py-3 text-base h-12'
-      : 'px-4 py-2 text-sm h-10';
+type ButtonProps = HTMLButtonNoDrag & MotionProps & OwnButtonProps;
 
-  const base =
-    'rounded-2xl font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 relative overflow-hidden';
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      children,
+      className,
+      variant = 'default',
+      size = 'default',
+      disabled,
+      loading,
+      ...props
+    },
+    ref
+  ) => {
+    const sizeClasses =
+      size === 'sm'
+        ? 'px-3 py-1.5 text-xs h-8'
+        : size === 'lg'
+        ? 'px-6 py-3 text-base h-12'
+        : 'px-4 py-2 text-sm h-10';
 
-  const variants: Record<ButtonVariant, string> = {
-    default:
-      'bg-gray-900 text-white hover:bg-gray-800 shadow-lg hover:shadow-xl border border-gray-800',
-    outline:
-      'border-2 border-gray-200/60 text-gray-700 hover:bg-white/60 hover:border-gray-300/60 backdrop-blur-sm bg-white/40',
-    ghost:
-      'text-gray-700 hover:bg-white/30 hover:text-gray-900 backdrop-blur-sm',
-    gradient:
-      'bg-gradient-to-r from-[hsl(var(--brand-primary))] via-[hsl(var(--brand-secondary))] to-[hsl(var(--brand-pink))] hover:from-[hsl(var(--brand-secondary))] hover:to-[hsl(var(--brand-pink))] text-white shadow-lg hover:shadow-xl',
-    glass:
-      'bg-white/20 backdrop-blur-xl border border-white/30 text-gray-800 hover:bg-white/30 shadow-lg hover:shadow-xl',
-  };
+    const base =
+      'rounded-2xl font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 relative overflow-hidden';
 
-  return (
-    <motion.button
-      className={cn(sizeClasses, base, variants[variant], className)}
-      whileHover={{ scale: 1.02, y: -1 }}
-      whileTap={{ scale: 0.98 }}
-      {...props}
-    >
-      {children}
-    </motion.button>
-  );
-};
+    const variants: Record<ButtonVariant, string> = {
+      default:
+        'bg-gray-900 text-white hover:bg-gray-800 shadow-lg hover:shadow-xl border border-gray-800',
+      outline:
+        'border-2 border-gray-200/60 text-gray-700 hover:bg-white/60 hover:border-gray-300/60 backdrop-blur-sm bg-white/40',
+      ghost:
+        'text-gray-700 hover:bg-white/30 hover:text-gray-900 backdrop-blur-sm',
+      gradient:
+        'bg-gradient-to-r from-[hsl(var(--brand-primary))] via-[hsl(var(--brand-secondary))] to-[hsl(var(--brand-pink))] hover:from-[hsl(var(--brand-secondary))] hover:to-[hsl(var(--brand-pink))] text-white shadow-lg hover:shadow-xl',
+      glass:
+        'bg-white/20 backdrop-blur-xl border border-white/30 text-gray-800 hover:bg-white/30 shadow-lg hover:shadow-xl',
+    };
+
+    return (
+      <motion.button
+        ref={ref}
+        className={cn(sizeClasses, base, variants[variant], className)}
+        whileHover={{ scale: 1.02, y: -1 }}
+        whileTap={{ scale: 0.98 }}
+        disabled={disabled || loading}
+        {...props}
+      >
+        {children}
+      </motion.button>
+    );
+  }
+);
+Button.displayName = 'Button';
 
 const labels: Record<string, string> = {
   '/': 'Dashboard',
@@ -113,44 +129,49 @@ export function AppHeader({ onMenuClick, isMobileMenuOpen }: AppHeaderProps) {
   const isConnected = !!activeAccount;
 
   // Enhanced background animations
-  const backgroundShapes = useMemo(() => (
-    <>
-      <motion.div
-        className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full mix-blend-multiply filter blur-2xl"
-        animate={{ 
-          x: [0, 20, -10, 0], 
-          y: [0, 15, -5, 0],
-          scale: [1, 1.1, 0.9, 1]
-        }}
-        transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <motion.div
-        className="absolute -bottom-10 -left-10 w-32 h-32 bg-gradient-to-r from-blue-400/20 to-indigo-400/20 rounded-full mix-blend-multiply filter blur-2xl"
-        animate={{ 
-          x: [0, -15, 10, 0], 
-          y: [0, -20, 5, 0],
-          scale: [1, 0.8, 1.2, 1]
-        }}
-        transition={{ duration: 30, repeat: Infinity, ease: 'easeInOut' }}
-      />
-    </>
-  ), []);
+  const backgroundShapes = useMemo(
+    () => (
+      <>
+        <motion.div
+          className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full mix-blend-multiply filter blur-2xl"
+          animate={{
+            x: [0, 20, -10, 0],
+            y: [0, 15, -5, 0],
+            scale: [1, 1.1, 0.9, 1],
+          }}
+          transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="absolute -bottom-10 -left-10 w-32 h-32 bg-gradient-to-r from-blue-400/20 to-indigo-400/20 rounded-full mix-blend-multiply filter blur-2xl"
+          animate={{
+            x: [0, -15, 10, 0],
+            y: [0, -20, 5, 0],
+            scale: [1, 0.8, 1.2, 1],
+          }}
+          transition={{ duration: 30, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      </>
+    ),
+    []
+  );
 
   // Register a global opener that clicks the wrapped LoginButton and optionally selects a tab
   useEffect(() => {
-    const selectTabByLabel = (label?: string) => {
-      if (!label) return;
+    const selectTabByLabel = (tabLabel?: string) => {
+      if (!tabLabel) return;
       let tries = 0;
-      const t = setInterval(() => {
-        tries++;
+      const t = window.setInterval(() => {
+        tries += 1;
         const candidates = Array.from(
           document.querySelectorAll<HTMLElement>('button,[role="tab"]')
         );
 
         const match = candidates.find((el) => {
-          const txt = (el.innerText || el.textContent || '').trim().toLowerCase();
+          const txt = (el.innerText || el.textContent || '')
+            .trim()
+            .toLowerCase();
           if (!txt) return false;
-          const wanted = label.toLowerCase();
+          const wanted = tabLabel.toLowerCase();
           return (
             txt === wanted ||
             (wanted === 'deposit' && /deposit|add funds|top ?up/.test(txt)) ||
@@ -161,9 +182,9 @@ export function AppHeader({ onMenuClick, isMobileMenuOpen }: AppHeaderProps) {
 
         if (match) {
           match.click();
-          clearInterval(t);
+          window.clearInterval(t);
         }
-        if (tries > 20) clearInterval(t); // ~2s max (20 * 100ms)
+        if (tries > 20) window.clearInterval(t); // ~2s max (20 * 100ms)
       }, 100);
     };
 
@@ -172,7 +193,8 @@ export function AppHeader({ onMenuClick, isMobileMenuOpen }: AppHeaderProps) {
         document.getElementById('panna-widget-trigger') ||
         document.querySelector('[data-panna-login-wrapper]');
 
-      const clickTarget = wrapper?.querySelector<HTMLElement>('button, [role="button"]');
+      const clickTarget =
+        wrapper?.querySelector<HTMLElement>('button, [role="button"]');
       if (clickTarget) {
         clickTarget.click();
         if (view) selectTabByLabel(view);
@@ -216,7 +238,7 @@ export function AppHeader({ onMenuClick, isMobileMenuOpen }: AppHeaderProps) {
         {backgroundShapes}
       </div>
 
-      <motion.header 
+      <motion.header
         className="sticky top-0 z-40 bg-white/70 backdrop-blur-2xl border-b border-white/30 shadow-xl"
         initial={{ y: -100 }}
         animate={{ y: 0 }}
@@ -227,24 +249,28 @@ export function AppHeader({ onMenuClick, isMobileMenuOpen }: AppHeaderProps) {
             {/* Left: Menu + Logo + Title + Breadcrumb */}
             <div className="flex items-center gap-4">
               {/* Mobile menu button */}
-              <Button 
-                variant="glass" 
+              <Button
+                variant="glass"
                 size="sm"
-                className="p-2 lg:hidden" 
-                aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+                className="p-2 lg:hidden"
+                aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
                 onClick={onMenuClick}
               >
                 <motion.div
                   animate={isMobileMenuOpen ? { rotate: 180 } : { rotate: 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                  {isMobileMenuOpen ? (
+                    <X className="w-5 h-5" />
+                  ) : (
+                    <Menu className="w-5 h-5" />
+                  )}
                 </motion.div>
               </Button>
 
               {/* Logo and brand */}
               <Link href="/" className="flex items-center gap-3">
-                <motion.div 
+                <motion.div
                   className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[hsl(var(--brand-primary))] via-[hsl(var(--brand-secondary))] to-[hsl(var(--brand-pink))] p-0.5 shadow-lg"
                   whileHover={{ scale: 1.05, rotate: 5 }}
                   whileTap={{ scale: 0.95 }}
@@ -257,13 +283,15 @@ export function AppHeader({ onMenuClick, isMobileMenuOpen }: AppHeaderProps) {
                   <span className="text-2xl font-extrabold bg-gradient-to-r from-[hsl(var(--brand-primary))] via-[hsl(var(--brand-secondary))] to-[hsl(var(--brand-pink))] bg-clip-text text-transparent">
                     RemittEase
                   </span>
-                  <div className="text-xs text-gray-500 font-medium">Global Payments</div>
+                  <div className="text-xs text-gray-500 font-medium">
+                    Global Payments
+                  </div>
                 </div>
               </Link>
 
               {/* Breadcrumb with enhanced styling */}
               <div className="hidden md:flex items-center gap-3 ml-2">
-                <motion.div 
+                <motion.div
                   className="w-1.5 h-1.5 bg-gradient-to-r from-[hsl(var(--brand-primary))] to-[hsl(var(--brand-secondary))] rounded-full"
                   animate={{ opacity: [0.5, 1, 0.5] }}
                   transition={{ duration: 2, repeat: Infinity }}
@@ -286,13 +314,13 @@ export function AppHeader({ onMenuClick, isMobileMenuOpen }: AppHeaderProps) {
               {isConnected ? (
                 <>
                   {/* Connected status chip */}
-                  <motion.div 
+                  <motion.div
                     className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-50/90 to-green-50/90 border border-emerald-200/50 backdrop-blur-sm shadow-sm"
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.3 }}
                   >
-                    <motion.div 
+                    <motion.div
                       className="w-2 h-2 bg-emerald-500 rounded-full"
                       animate={{
                         scale: [1, 1.2, 1],
@@ -304,15 +332,27 @@ export function AppHeader({ onMenuClick, isMobileMenuOpen }: AppHeaderProps) {
                       }}
                       transition={{ duration: 2, repeat: Infinity }}
                     />
-                    <span className="text-xs font-semibold text-emerald-700">Connected</span>
+                    <span className="text-xs font-semibold text-emerald-700">
+                      Connected
+                    </span>
                   </motion.div>
 
                   {/* Action buttons */}
-                  <Button variant="glass" size="sm" className="p-2" aria-label="Notifications">
+                  <Button
+                    variant="glass"
+                    size="sm"
+                    className="p-2"
+                    aria-label="Notifications"
+                  >
                     <Bell className="w-4 h-4 text-gray-700" />
                   </Button>
 
-                  <Button variant="glass" size="sm" className="p-2" aria-label="Settings">
+                  <Button
+                    variant="glass"
+                    size="sm"
+                    className="p-2"
+                    aria-label="Settings"
+                  >
                     <Settings className="w-4 h-4 text-gray-700" />
                   </Button>
 
@@ -321,20 +361,26 @@ export function AppHeader({ onMenuClick, isMobileMenuOpen }: AppHeaderProps) {
                 </>
               ) : (
                 <div className="hidden sm:flex items-center gap-3">
-                  <motion.div 
+                  <motion.div
                     className="flex items-center gap-2 text-gray-500 px-3 py-2 rounded-xl bg-white/40 backdrop-blur-sm border border-white/30"
                     initial={{ x: 20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ delay: 0.4 }}
                   >
                     <Wallet className="w-4 h-4" />
-                    <span className="text-sm font-medium">Connect to continue</span>
+                    <span className="text-sm font-medium">
+                      Connect to continue
+                    </span>
                   </motion.div>
                 </div>
               )}
 
-              {/* Wrapped LoginButton */}
-              <div id="panna-widget-trigger" data-panna-login-wrapper className="sr-only">
+              {/* Wrapped LoginButton (programmatically triggered) */}
+              <div
+                id="panna-widget-trigger"
+                data-panna-login-wrapper
+                className="sr-only"
+              >
                 <LoginButton />
               </div>
             </div>
@@ -342,7 +388,7 @@ export function AppHeader({ onMenuClick, isMobileMenuOpen }: AppHeaderProps) {
         </div>
 
         {/* Enhanced gradient accent line */}
-        <motion.div 
+        <motion.div
           className="h-px bg-gradient-to-r from-[hsl(var(--brand-primary))] via-[hsl(var(--brand-secondary))] to-[hsl(var(--brand-pink))]"
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}

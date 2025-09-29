@@ -1,76 +1,100 @@
+// app/account/components/account-information-card.tsx
 'use client';
 
-import { Copy, ExternalLink } from 'lucide-react';
+import * as React from 'react';
+import { Mail, Phone, User, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 
 interface AccountInformationCardProps {
-  address: string;
-  balance?: string;
-  isLoadingBalance?: boolean;
+  userEmail?: string;
+  userPhone?: string;
+  isLoadingProfiles: boolean;
 }
 
-export function AccountInformationCard({
-  address,
-  balance,
-  isLoadingBalance
-}: AccountInformationCardProps) {
-  const truncatedAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
+export const AccountInformationCard = React.memo<AccountInformationCardProps>(
+  ({ userEmail, userPhone, isLoadingProfiles }) => {
+    const hasAnyProfile = React.useMemo(
+      () => Boolean(userEmail || userPhone),
+      [userEmail, userPhone]
+    );
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(address);
-  };
+    if (isLoadingProfiles) {
+      return (
+        <Card>
+          <CardHeader>
+            <CardTitle>Account Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {[1, 2].map((i) => (
+                <div key={i} className="h-16 bg-muted/50 rounded-lg animate-pulse" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
 
-  const openInExplorer = () => {
-    window.open(`https://blockscout.lisk.com/address/${address}`, '_blank');
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Account Information</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <p className="text-sm text-muted-foreground mb-1">Address</p>
-          <div className="flex items-center gap-2">
-            <code className="text-sm bg-muted px-2 py-1 rounded">
-              {truncatedAddress}
-            </code>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              onClick={copyToClipboard}
-            >
-              <Copy className="h-3 w-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              onClick={openInExplorer}
-            >
-              <ExternalLink className="h-3 w-3" />
-            </Button>
-          </div>
-        </div>
-
-        <div>
-          <p className="text-sm text-muted-foreground mb-1">Balance</p>
-          {isLoadingBalance ? (
-            <div className="h-6 w-24 bg-muted animate-pulse rounded" />
-          ) : (
-            <p className="font-mono">{balance || '0'} LSK</p>
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <User className="size-5" />
+              Account Information
+            </span>
+            {!hasAnyProfile && (
+              <Button variant="outline" size="sm" className="gap-1">
+                <Plus className="size-4" />
+                Add Profile
+              </Button>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {userEmail && (
+            <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+              <div className="size-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                <Mail className="size-5 text-blue-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-muted-foreground">Email Address</p>
+                <p className="text-sm font-medium truncate">{userEmail}</p>
+              </div>
+            </div>
           )}
-        </div>
 
-        <div>
-          <p className="text-sm text-muted-foreground mb-1">Network</p>
-          <Badge variant="secondary">Lisk</Badge>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+          {userPhone && (
+            <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+              <div className="size-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                <Phone className="size-5 text-green-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-muted-foreground">Phone Number</p>
+                <p className="text-sm font-medium">{userPhone}</p>
+              </div>
+            </div>
+          )}
+
+          {!hasAnyProfile && (
+            <div className="text-center py-8">
+              <User className="size-12 mx-auto mb-3 text-muted-foreground" />
+              <p className="text-sm font-medium mb-1">No account information</p>
+              <p className="text-xs text-muted-foreground mb-4">
+                Add your email or phone for better account security
+              </p>
+              <Button variant="outline" size="sm" className="gap-1">
+                <Plus className="size-4" />
+                Add Profile
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+);
+
+AccountInformationCard.displayName = 'AccountInformationCard';
+

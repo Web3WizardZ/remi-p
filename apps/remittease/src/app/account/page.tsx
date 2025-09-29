@@ -4,31 +4,9 @@ import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { CSSProperties } from 'react';
 import {
-  LogOut,
-  Send,
-  Download,
-  Plus,
-  Wallet,
-  Copy,
-  Check,
-  Eye,
-  EyeOff,
-  RefreshCw,
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Shield,
-  Globe,
-  Lock,
-  Share,
-  History,
-  ArrowDownLeft,
-  Info,
-  X,
-  ChevronRight,
-  Users,
-  Activity,
-  Home,
+  LogOut, Send, Download, Plus, Wallet, Copy, Check, Eye, EyeOff,
+  RefreshCw, AlertCircle, CheckCircle, Shield, Globe, Lock, Share,
+  History, ArrowDownLeft, Info, X, ChevronRight, Users, Activity, Home,
 } from 'lucide-react';
 import {
   lisk,
@@ -42,7 +20,6 @@ import {
   LoginButton,
 } from 'panna-sdk';
 
-// Simplified theme tokens
 const themeStyle = {
   '--brand-primary': '262 83% 58%',
   '--success': '142 76% 36%',
@@ -50,18 +27,15 @@ const themeStyle = {
   '--error': '0 84% 60%',
 } as CSSProperties;
 
-// Utility function
 const cn = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(' ');
 
-// Simple reduced motion detection
 const useMotionPreference = () => {
   const [prefersReduced, setPrefersReduced] = React.useState(false);
   
   React.useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     setPrefersReduced(mediaQuery.matches);
-    
     const handler = (e: MediaQueryListEvent) => setPrefersReduced(e.matches);
     mediaQuery.addEventListener('change', handler);
     return () => mediaQuery.removeEventListener('change', handler);
@@ -76,7 +50,6 @@ const useMotionPreference = () => {
   }), [prefersReduced]);
 };
 
-// Enhanced Button Component
 interface ButtonProps {
   children: React.ReactNode;
   className?: string;
@@ -89,14 +62,8 @@ interface ButtonProps {
 }
 
 const Button: React.FC<ButtonProps> = ({
-  children,
-  className,
-  variant = 'primary',
-  size = 'default',
-  loading,
-  disabled,
-  onClick,
-  'aria-label': ariaLabel,
+  children, className, variant = 'primary', size = 'default',
+  loading, disabled, onClick, 'aria-label': ariaLabel,
 }) => {
   const motionProps = useMotionPreference();
   
@@ -129,23 +96,14 @@ const Button: React.FC<ButtonProps> = ({
       animate={motionProps.animate}
       transition={motionProps.transition}
     >
-      {loading && (
-        <RefreshCw className="w-4 h-4 animate-spin" />
-      )}
+      {loading && <RefreshCw className="w-4 h-4 animate-spin" />}
       {!loading && children}
     </motion.button>
   );
 };
 
-// Card Component
-interface CardProps {
-  className?: string;
-  children: React.ReactNode;
-}
-
-const Card: React.FC<CardProps> = ({ className, children }) => {
+const Card: React.FC<{ className?: string; children: React.ReactNode }> = ({ className, children }) => {
   const motionProps = useMotionPreference();
-  
   return (
     <motion.div
       className={cn('bg-white rounded-2xl shadow-lg border border-gray-100 p-6', className)}
@@ -158,20 +116,12 @@ const Card: React.FC<CardProps> = ({ className, children }) => {
   );
 };
 
-// Skeleton Component
 const Skeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
   <div className={cn('animate-pulse bg-gray-200 rounded-lg', className)} />
 );
 
-// Tooltip Component
-interface TooltipProps {
-  children: React.ReactNode;
-  content: string;
-}
-
-const Tooltip: React.FC<TooltipProps> = ({ children, content }) => {
+const Tooltip: React.FC<{ children: React.ReactNode; content: string }> = ({ children, content }) => {
   const [show, setShow] = React.useState(false);
-
   return (
     <div className="relative inline-block">
       <div
@@ -201,7 +151,6 @@ const Tooltip: React.FC<TooltipProps> = ({ children, content }) => {
   );
 };
 
-// Toast System
 interface Toast {
   id: number;
   type: 'success' | 'error' | 'info';
@@ -209,22 +158,6 @@ interface Toast {
   message: string;
 }
 
-// Generate avatar helper
-const generateAvatar = (
-  seed: string,
-  style: 'initials' | 'bottts' | 'avataaars' = 'initials'
-) => {
-  const baseUrl = 'https://api.dicebear.com/7.x';
-  const params = new URLSearchParams({
-    seed,
-    backgroundColor: 'b6e3f4,c0aede,d1d4f9,fde68a,fed7aa,fecaca',
-    radius: '20',
-  });
-  if (style === 'initials') params.append('fontSize', '36');
-  return `${baseUrl}/${style}/svg?${params.toString()}`;
-};
-
-// Main Component
 export default function ImprovedRemittEaseWallet() {
   const [showBalance, setShowBalance] = React.useState(true);
   const [copied, setCopied] = React.useState(false);
@@ -239,179 +172,105 @@ export default function ImprovedRemittEaseWallet() {
   const activeAccount = useActiveAccount();
   const { client } = usePanna();
 
+  const isConnected = React.useMemo(() => !!activeAccount, [activeAccount]);
+  const address = React.useMemo(() => activeAccount?.address ?? '', [activeAccount]);
+  const hasValidData = React.useMemo(() => Boolean(client && address), [client, address]);
+
   const activeWallet = React.useMemo(
-    () =>
-      connectedAccounts?.find((w: any) => {
-        try {
-          return w?.getAccount?.()?.address === activeAccount?.address;
-        } catch {
-          return false;
-        }
-      }) ?? connectedAccounts?.[0],
+    () => connectedAccounts?.find((w: any) => {
+      try {
+        return w?.getAccount?.()?.address === activeAccount?.address;
+      } catch {
+        return false;
+      }
+    }) ?? connectedAccounts?.[0],
     [connectedAccounts, activeAccount]
   );
 
-  const address = activeAccount?.address ?? '';
+  const { data: accountBalance, isLoading: isLoadingBalance, refetch: refetchBalance, error: balanceError } = 
+    useAccountBalance({
+      address,
+      client: client!,
+      chain: lisk,
+      enabled: hasValidData
+    } as any);
 
-  // Enable hooks only when client/address exist (prevents early errors)
-  const {
-    data: accountBalance,
-    isLoading: isLoadingBalance,
-    refetch: refetchBalance,
-    error: balanceError,
-  } = useAccountBalance({
+  const { data: userProfiles, isLoading: isLoadingProfiles, error: profilesError } = 
+    useUserProfiles({
+      client: client!,
+      enabled: Boolean(client)
+    } as any);
+
+  const { data: socialProfiles } = useSocialAccounts({ 
+    client: client!, 
     address,
-    client,
-    chain: lisk,
-    enabled: Boolean(client && address)
+    enabled: hasValidData 
   } as any);
 
-  const {
-    data: userProfiles,
-    isLoading: isLoadingProfiles,
-    error: profilesError,
-  } = useUserProfiles({
-    client,
-    enabled: Boolean(client)
-  } as any);
-
-  useSocialAccounts({ client, address } as any);
-
-  const isConnected = !!activeAccount;
-
-  // Toast system - defined early to avoid hoisting issues
   const addToast = React.useCallback((toast: Omit<Toast, 'id'>) => {
     const id = Date.now();
     setNotifications(prev => [...prev, { ...toast, id }]);
-    setTimeout(() => {
-      setNotifications(prev => prev.filter(n => n.id !== id));
-    }, 4000);
+    setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), 4000);
   }, []);
 
-  /** USD total normalized */
-  const totalUSD = React.useMemo<number>(() => {
+  const totalUSD = React.useMemo(() => {
     const val = [
       (accountBalance as any)?.fiatBalance?.amount,
       (accountBalance as any)?.fiat?.usd,
-      (accountBalance as any)?.usdValue ?? (accountBalance as any)?.fiatValue,
+      (accountBalance as any)?.usdValue,
+      (accountBalance as any)?.fiatValue,
     ].find((v) => typeof v === 'number');
-    return Number.isFinite(val as number) ? (val as number) : 0;
+    return Number.isFinite(val) ? val : 0;
   }, [accountBalance]);
 
-  /** Network status */
-  const networkStatus = React.useMemo(() => {
-    if (balanceError)
-      return { status: 'error' as const, label: 'Network error' };
-    if (isLoadingBalance || refreshing)
-      return { status: 'loading' as const, label: 'Syncing' };
-    return { status: 'live' as const, label: 'Live Data' };
-  }, [balanceError, isLoadingBalance, refreshing]);
+  const openPannaWidget = React.useCallback((view?: 'Deposit' | 'Send' | 'Receive') => {
+    if (openLockRef.current || widgetOpen) return;
+    openLockRef.current = true;
+    setWidgetOpen(true);
 
-  /** Widget opener (simple lock) */
-  const openPannaWidget = React.useCallback(
-    (view?: 'Deposit' | 'Send' | 'Receive') => {
-      if (openLockRef.current || widgetOpen) return;
-      openLockRef.current = true;
-      setWidgetOpen(true);
-
-      try {
-        (window as any).__openPannaWidget?.(view);
-        addToast({
-          type: 'info',
-          title: `${view} Opening`,
-          message: `Launching ${view?.toLowerCase()} interface...`,
-        });
-      } finally {
-        setTimeout(() => {
-          openLockRef.current = false;
-        }, 1200);
-      }
-    },
-    [widgetOpen, addToast]
-  );
+    try {
+      (window as any).__openPannaWidget?.(view);
+      addToast({
+        type: 'info',
+        title: `${view} Opening`,
+        message: `Launching ${view?.toLowerCase()} interface...`,
+      });
+    } finally {
+      setTimeout(() => { openLockRef.current = false; }, 1200);
+    }
+  }, [widgetOpen, addToast]);
 
   React.useEffect(() => {
     const close = () => setWidgetOpen(false);
-    const events = [
-      'panna:widget:close',
-      'panna:widget:closed',
-      'panna:modal:close',
-      'panna:overlay:close',
-      'widget:close',
-      'modal:close',
-    ];
-    events.forEach((evt) => window.addEventListener(evt, close));
-    return () => events.forEach((evt) => window.removeEventListener(evt, close));
+    const events = ['panna:widget:close', 'panna:widget:closed', 'panna:modal:close'];
+    events.forEach(evt => window.addEventListener(evt, close));
+    return () => events.forEach(evt => window.removeEventListener(evt, close));
   }, []);
 
-  // Copy address functionality
   const copyAddress = React.useCallback(async () => {
-    if (!activeAccount?.address) return;
-    
+    if (!address) return;
     try {
-      await navigator.clipboard.writeText(activeAccount.address);
+      await navigator.clipboard.writeText(address);
       setCopied(true);
-      addToast({
-        type: 'success',
-        title: 'Address Copied!',
-        message: 'Wallet address copied to clipboard',
-      });
+      addToast({ type: 'success', title: 'Address Copied!', message: 'Wallet address copied to clipboard' });
       setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback for older browsers
-      const textArea = document.createElement('textarea');
-      textArea.value = activeAccount.address;
-      textArea.style.position = 'fixed';
-      textArea.style.opacity = '0';
-      document.body.appendChild(textArea);
-      textArea.select();
-      const success = document.execCommand('copy');
-      document.body.removeChild(textArea);
-      
-      if (success) {
-        setCopied(true);
-        addToast({
-          type: 'success',
-          title: 'Address Copied!',
-          message: 'Wallet address copied to clipboard',
-        });
-        setTimeout(() => setCopied(false), 2000);
-      } else {
-        addToast({
-          type: 'error',
-          title: 'Copy Failed',
-          message: 'Failed to copy address',
-        });
-      }
-    }
-  }, [activeAccount?.address, addToast]);
+    } catch { }
+  }, [address, addToast]);
 
-  // Refresh functionality
   const handleRefresh = React.useCallback(async () => {
     if (refreshing) return;
     setRefreshing(true);
-    
     try {
       await refetchBalance?.();
-      addToast({
-        type: 'success',
-        title: 'Updated',
-        message: 'Balance refreshed successfully',
-      });
+      addToast({ type: 'success', title: 'Updated', message: 'Balance refreshed successfully' });
     } catch {
-      addToast({
-        type: 'error',
-        title: 'Update Failed',
-        message: 'Could not refresh balance',
-      });
+      addToast({ type: 'error', title: 'Update Failed', message: 'Could not refresh balance' });
     }
-    
     setTimeout(() => setRefreshing(false), 1000);
   }, [refetchBalance, refreshing, addToast]);
 
   const formatUSD = (amount?: number | null) => {
-    if (amount === undefined || amount === null || Number.isNaN(amount))
-      return null;
+    if (amount === undefined || amount === null || Number.isNaN(amount)) return null;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -420,34 +279,21 @@ export default function ImprovedRemittEaseWallet() {
     }).format(amount);
   };
 
-  const truncateAddress = (addr: string) => 
-    `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  const truncateAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 
-  // Real Panna widget actions
-  const handleSendMoney = () => openPannaWidget('Send');
-  const handleReceive = () => openPannaWidget('Receive'); 
-  const handleAddFunds = () => openPannaWidget('Deposit');
-
-  // Not connected view
   if (!isConnected) {
     return (
       <div style={themeStyle} className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center">
           <div className="mb-6">
             <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-2xl flex items-center justify-center shadow-lg border border-gray-100">
-              <img
-                src="/RE icon.png"
-                alt="RemittEase Logo"
-                className="w-10 h-10 object-contain"
-              />
+              <img src="/RE icon.png" alt="RemittEase Logo" className="w-10 h-10 object-contain" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to RemittEase</h2>
             <p className="text-gray-600">Connect your wallet to access instant cross-border payments</p>
           </div>
-          
           <LoginButton />
-          
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-3 gap-4 text-center mt-6">
             <div className="p-3 bg-gray-50 rounded-xl">
               <Shield className="w-5 h-5 mx-auto mb-2 text-green-600" />
               <span className="text-xs font-medium text-gray-700">Secure</span>
@@ -467,9 +313,75 @@ export default function ImprovedRemittEaseWallet() {
   }
 
   return (
-    <div style={themeStyle} className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50">
-      {/* Notifications */}
-      <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm" role="region" aria-label="Notifications">
+    <div style={themeStyle} className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 relative">
+      {/* Thank You & Coming Soon Banner - Only shows when connected */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-lg">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center px-6"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+            className="inline-block mb-8"
+          >
+            <div className="w-24 h-24 mx-auto bg-white rounded-3xl flex items-center justify-center shadow-2xl border-4 border-green-500/30 relative">
+              <img src="/RE icon.png" alt="RemittEase Logo" className="w-14 h-14 object-contain" />
+              <div className="absolute -top-2 -right-2 bg-green-500 rounded-full p-2">
+                <CheckCircle className="w-6 h-6 text-white" />
+              </div>
+            </div>
+          </motion.div>
+          
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="text-5xl md:text-6xl font-bold text-white mb-4"
+          >
+            Thank You!
+          </motion.h1>
+          
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="text-2xl text-white/90 font-medium mb-2"
+          >
+            Registration Successful
+          </motion.p>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mb-8"
+          >
+            <div className="inline-block px-6 py-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 mb-6">
+              <p className="text-lg text-white font-medium">Coming Soon</p>
+            </div>
+            <p className="text-lg text-white/80 max-w-md mx-auto">
+              We're working hard to bring you the best cross-border payment experience
+            </p>
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="flex gap-2 justify-center"
+          >
+            <div className="w-3 h-3 bg-white rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
+            <div className="w-3 h-3 bg-white/80 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+            <div className="w-3 h-3 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+          </motion.div>
+        </motion.div>
+      </div>
+
+      <div className="fixed top-4 right-4 z-40 space-y-2 max-w-sm" role="region" aria-label="Notifications">
         <AnimatePresence>
           {notifications.map((notification) => (
             <motion.div
@@ -493,12 +405,7 @@ export default function ImprovedRemittEaseWallet() {
                   <h4 className="font-semibold text-gray-900 text-sm">{notification.title}</h4>
                   <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
                 </div>
-                <button 
-                  className="text-gray-400 hover:text-gray-600 flex-shrink-0"
-                  aria-label="Dismiss notification"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+                <X className="w-4 h-4 text-gray-400 flex-shrink-0" />
               </div>
             </motion.div>
           ))}
@@ -506,7 +413,6 @@ export default function ImprovedRemittEaseWallet() {
       </div>
 
       <div className="max-w-4xl mx-auto p-4 sm:p-6">
-        {/* Header */}
         <motion.header
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -514,11 +420,7 @@ export default function ImprovedRemittEaseWallet() {
         >
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg border border-gray-100">
-              <img
-                src="/RE icon.png"
-                alt="RemittEase Logo"
-                className="w-7 h-7 object-contain"
-              />
+              <img src="/RE icon.png" alt="RemittEase Logo" className="w-7 h-7 object-contain" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">Account</h1>
@@ -530,36 +432,19 @@ export default function ImprovedRemittEaseWallet() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={refreshing}
-              aria-label="Refresh balance"
-            >
+            <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={refreshing} aria-label="Refresh balance">
               <RefreshCw className={cn('w-4 h-4', refreshing && 'animate-spin')} />
             </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowBalance(!showBalance)}
-              aria-label={showBalance ? 'Hide balance' : 'Show balance'}
-            >
+            <Button variant="ghost" size="sm" onClick={() => setShowBalance(!showBalance)} aria-label={showBalance ? 'Hide balance' : 'Show balance'}>
               {showBalance ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
             </Button>
-            
             <Button
               variant="outline"
               size="sm"
               onClick={() => {
                 if (activeWallet) {
                   logout(activeWallet);
-                  addToast({
-                    type: 'info',
-                    title: 'Signed Out',
-                    message: 'Successfully logged out. See you soon!',
-                  });
+                  addToast({ type: 'info', title: 'Signed Out', message: 'Successfully logged out. See you soon!' });
                 }
               }}
               aria-label="Sign out"
@@ -570,7 +455,6 @@ export default function ImprovedRemittEaseWallet() {
           </div>
         </motion.header>
 
-        {/* Balance Card */}
         <Card className="mb-6 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600" />
           <div className="relative z-10 text-white">
@@ -589,7 +473,6 @@ export default function ImprovedRemittEaseWallet() {
                   </div>
                 </div>
               </div>
-
               <button
                 onClick={() => setShowBalance(!showBalance)}
                 className="p-2 bg-white/20 rounded-lg backdrop-blur-sm hover:bg-white/30 transition-colors"
@@ -612,12 +495,7 @@ export default function ImprovedRemittEaseWallet() {
                     <div>
                       <h4 className="font-semibold">Connection Failed</h4>
                       <p className="text-sm opacity-90 mb-2">Unable to fetch balance. Check your connection.</p>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={handleRefresh}
-                        className="border-red-300 text-red-100 hover:bg-red-500/20"
-                      >
+                      <Button variant="outline" size="sm" onClick={handleRefresh} className="border-red-300 text-red-100 hover:bg-red-500/20">
                         Try Again
                       </Button>
                     </div>
@@ -633,10 +511,7 @@ export default function ImprovedRemittEaseWallet() {
                   {showBalance && totalUSD === 0 && (
                     <div className="text-center py-4">
                       <p className="text-white/80 mb-4">Your wallet is empty</p>
-                      <Button 
-                        onClick={handleAddFunds} 
-                        className="bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30 transition-colors"
-                      >
+                      <Button onClick={() => openPannaWidget('Deposit')} className="bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30 transition-colors">
                         Add your first funds
                       </Button>
                     </div>
@@ -645,7 +520,6 @@ export default function ImprovedRemittEaseWallet() {
               )}
             </div>
 
-            {/* Quick Actions Bar */}
             <div className="flex gap-2 p-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 mb-4">
               <Button variant="ghost" size="sm" className="flex-1 text-white hover:bg-white/20" onClick={copyAddress}>
                 {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -661,18 +535,14 @@ export default function ImprovedRemittEaseWallet() {
               </Button>
             </div>
 
-            {/* Wallet Info */}
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20">
                 <div className="text-xs opacity-70 mb-2 flex items-center gap-1">
                   <Lock className="w-3 h-3" />
                   Wallet Address
                 </div>
-                <div className="font-mono text-sm">
-                  {truncateAddress(activeAccount.address)}
-                </div>
+                <div className="font-mono text-sm">{truncateAddress(address)}</div>
               </div>
-              
               <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20">
                 <div className="text-xs opacity-70 mb-2 flex items-center gap-1">
                   <Globe className="w-3 h-3" />
@@ -690,7 +560,6 @@ export default function ImprovedRemittEaseWallet() {
           </div>
         </Card>
 
-        {/* Main Actions - Improved Hierarchy */}
         <motion.section
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -698,39 +567,24 @@ export default function ImprovedRemittEaseWallet() {
           className="grid grid-cols-4 gap-3 mb-6"
           aria-label="Main actions"
         >
-          {/* Primary Action - Send Money (spans 2 columns) */}
           <Button
             className="col-span-2 h-20 bg-gradient-to-r from-blue-600 to-indigo-600 flex-col"
-            onClick={handleSendMoney}
+            onClick={() => openPannaWidget('Send')}
             aria-label="Send money"
           >
             <Send className="w-6 h-6 mb-2" />
             <span className="font-semibold">Send Money</span>
           </Button>
-
-          {/* Secondary Actions */}
-          <Button
-            variant="outline"
-            className="h-20 flex-col"
-            onClick={handleReceive}
-            aria-label="Receive money"
-          >
+          <Button variant="outline" className="h-20 flex-col" onClick={() => openPannaWidget('Receive')} aria-label="Receive money">
             <Download className="w-5 h-5 mb-2" />
             <span className="text-sm">Receive</span>
           </Button>
-
-          <Button
-            variant="outline"
-            className="h-20 flex-col"
-            onClick={handleAddFunds}
-            aria-label="Add funds"
-          >
+          <Button variant="outline" className="h-20 flex-col" onClick={() => openPannaWidget('Deposit')} aria-label="Add funds">
             <ArrowDownLeft className="w-5 h-5 mb-2" />
             <span className="text-sm">Add Funds</span>
           </Button>
         </motion.section>
 
-        {/* Tab Navigation */}
         <nav className="flex bg-gray-100 p-1 rounded-xl mb-6" role="tablist">
           {[
             { id: 'overview', label: 'Overview', icon: Home },
@@ -741,13 +595,10 @@ export default function ImprovedRemittEaseWallet() {
               key={tab.id}
               role="tab"
               aria-selected={activeTab === tab.id}
-              aria-controls={`${tab.id}-panel`}
               onClick={() => setActiveTab(tab.id as any)}
               className={cn(
                 'flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg font-medium transition-all',
-                activeTab === tab.id
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                activeTab === tab.id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
               )}
             >
               <tab.icon className="w-4 h-4" />
@@ -756,25 +607,13 @@ export default function ImprovedRemittEaseWallet() {
           ))}
         </nav>
 
-        {/* Tab Content */}
         <AnimatePresence mode="wait">
           {activeTab === 'overview' && (
-            <motion.div
-              key="overview"
-              role="tabpanel"
-              id="overview-panel"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-4"
-            >
+            <motion.div key="overview" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
               <Card>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
-                  <Button variant="ghost" size="sm">
-                    View All
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </Button>
+                  <Button variant="ghost" size="sm">View All<ChevronRight className="w-4 h-4 ml-1" /></Button>
                 </div>
                 <div className="text-center py-8 text-gray-500">
                   <Activity className="w-12 h-12 mx-auto mb-4 text-gray-300" />
@@ -786,14 +625,7 @@ export default function ImprovedRemittEaseWallet() {
           )}
 
           {activeTab === 'accounts' && (
-            <motion.div
-              key="accounts"
-              role="tabpanel"
-              id="accounts-panel"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
+            <motion.div key="accounts" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
               <Card>
                 <div className="flex items-center justify-between mb-6">
                   <div>
@@ -805,12 +637,9 @@ export default function ImprovedRemittEaseWallet() {
                     <span className="ml-2 hidden sm:inline">Add Account</span>
                   </Button>
                 </div>
-
                 {isLoadingProfiles ? (
                   <div className="space-y-3">
-                    {[1, 2].map(i => (
-                      <Skeleton key={i} className="h-16 w-full" />
-                    ))}
+                    {[1, 2].map(i => <Skeleton key={i} className="h-16 w-full" />)}
                   </div>
                 ) : profilesError ? (
                   <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
@@ -831,12 +660,8 @@ export default function ImprovedRemittEaseWallet() {
                             {(profile.email || profile.phoneNumber || 'U')[0].toUpperCase()}
                           </div>
                           <div>
-                            <div className="font-semibold text-gray-900">
-                              {profile.email || profile.phoneNumber || 'Connected Account'}
-                            </div>
-                            <div className="text-sm text-gray-500 capitalize">
-                              {profile.type || 'social'} account
-                            </div>
+                            <div className="font-semibold text-gray-900">{profile.email || profile.phoneNumber || 'Connected Account'}</div>
+                            <div className="text-sm text-gray-500 capitalize">{profile.type || 'social'} account</div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
@@ -850,13 +675,8 @@ export default function ImprovedRemittEaseWallet() {
                   <div className="text-center py-8">
                     <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                     <h4 className="text-lg font-semibold text-gray-900 mb-2">No connected accounts</h4>
-                    <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                      Link your social accounts, email, or phone number for enhanced security and easier access.
-                    </p>
-                    <Button>
-                      <Plus className="w-4 h-4" />
-                      <span className="ml-2">Add Account</span>
-                    </Button>
+                    <p className="text-gray-600 mb-6 max-w-md mx-auto">Link your social accounts, email, or phone for enhanced security.</p>
+                    <Button><Plus className="w-4 h-4" /><span className="ml-2">Add Account</span></Button>
                   </div>
                 )}
               </Card>
@@ -864,14 +684,7 @@ export default function ImprovedRemittEaseWallet() {
           )}
 
           {activeTab === 'activity' && (
-            <motion.div
-              key="activity"
-              role="tabpanel"
-              id="activity-panel"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
+            <motion.div key="activity" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
               <Card>
                 <h3 className="text-lg font-semibold text-gray-900 mb-6">Transaction History</h3>
                 <div className="text-center py-12 text-gray-500">

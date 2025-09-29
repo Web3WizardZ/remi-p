@@ -5,24 +5,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  HelpCircle,
-  User,
-  Wallet,
-  Home,
-  Send as SendIcon,
-  Download as ReceiveIcon,
-  Plus as DepositIcon,
-  Settings,
-  LogOut,
+  HelpCircle, User, Wallet, Home, Send as SendIcon, Download as ReceiveIcon,
+  Plus as DepositIcon, Settings, LogOut, ExternalLink, CheckCircle,
 } from 'lucide-react';
 import {
-  useActiveAccount,
-  useAccountBalance,
-  usePanna,
-  useLogout,
-  useConnectedAccounts,
-  lisk,
-  LoginButton,
+  useActiveAccount, useAccountBalance, usePanna, useLogout,
+  useConnectedAccounts, lisk, LoginButton,
 } from 'panna-sdk';
 
 const themeStyle: React.CSSProperties = {
@@ -36,14 +24,12 @@ const themeStyle: React.CSSProperties = {
 const cn = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(' ');
 
-// Simple reduced motion detection
 const useMotionPreference = () => {
   const [prefersReduced, setPrefersReduced] = React.useState(false);
   
   React.useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     setPrefersReduced(mediaQuery.matches);
-    
     const handler = (e: MediaQueryListEvent) => setPrefersReduced(e.matches);
     mediaQuery.addEventListener('change', handler);
     return () => mediaQuery.removeEventListener('change', handler);
@@ -59,11 +45,7 @@ const Logo = ({ className = '' }) => (
       whileHover={{ scale: 1.05, rotate: 5 }}
       whileTap={{ scale: 0.95 }}
     >
-      <img
-        src="/RE icon.png"
-        alt="RemittEase Logo"
-        className="w-6 h-6 object-contain"
-      />
+      <img src="/RE icon.png" alt="RemittEase Logo" className="w-6 h-6 object-contain" />
     </motion.div>
     <div className="flex flex-col">
       <span className="text-lg font-bold text-gray-900">RemittEase</span>
@@ -72,7 +54,6 @@ const Logo = ({ className = '' }) => (
   </div>
 );
 
-// global opener
 declare global {
   interface Window {
     __openPannaWidget?: (view?: 'Deposit' | 'Send' | 'Receive') => void;
@@ -80,11 +61,8 @@ declare global {
 }
 
 export type AppSidebarProps = {
-  // Desktop props
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
-
-  // Mobile props
   isMobile?: boolean;
   isMobileOpen?: boolean;
   onMobileClose?: () => void;
@@ -142,14 +120,13 @@ function usePannaBits() {
   const isConnected = !!activeAccount;
 
   const activeWallet = React.useMemo(
-    () =>
-      connectedAccounts?.find((w: any) => {
-        try {
-          return w?.getAccount?.()?.address === activeAccount?.address;
-        } catch {
-          return false;
-        }
-      }) ?? connectedAccounts?.[0],
+    () => connectedAccounts?.find((w: any) => {
+      try {
+        return w?.getAccount?.()?.address === activeAccount?.address;
+      } catch {
+        return false;
+      }
+    }) ?? connectedAccounts?.[0],
     [connectedAccounts, activeAccount]
   );
 
@@ -180,33 +157,18 @@ function usePannaBits() {
   const itemIsActive = (url: string) => pathname === url;
 
   return {
-    isConnected,
-    activeAccount,
-    activeWallet,
-    totalFiatUSD,
-    formatCurrencyUSD,
-    truncateAddress,
-    itemIsActive,
-    logout,
+    isConnected, activeAccount, activeWallet, totalFiatUSD,
+    formatCurrencyUSD, truncateAddress, itemIsActive, logout,
   } as const;
 }
 
 export function AppSidebar({
-  isCollapsed = false,
-  onToggleCollapse,
-  isMobile = false,
-  isMobileOpen = false,
-  onMobileClose,
+  isCollapsed = false, onToggleCollapse, isMobile = false,
+  isMobileOpen = false, onMobileClose,
 }: AppSidebarProps) {
   const {
-    isConnected,
-    activeAccount,
-    activeWallet,
-    totalFiatUSD,
-    formatCurrencyUSD,
-    truncateAddress,
-    itemIsActive,
-    logout,
+    isConnected, activeAccount, activeWallet, totalFiatUSD,
+    formatCurrencyUSD, truncateAddress, itemIsActive, logout,
   } = usePannaBits();
 
   const prefersReducedMotion = useMotionPreference();
@@ -224,7 +186,6 @@ export function AppSidebar({
     onMobileClose?.();
   };
 
-  // Simplified background blobs (respects reduced motion)
   const backgroundShapes = React.useMemo(
     () => prefersReducedMotion ? null : (
       <>
@@ -243,13 +204,63 @@ export function AppSidebar({
     [prefersReducedMotion]
   );
 
-  // -------- Mobile variant (drawer)
+  // Mobile variant
   if (isMobile) {
     return (
       <AnimatePresence>
         {isMobileOpen && (
           <div style={themeStyle}>
-            {/* Backdrop */}
+            {/* Coming Soon Overlay - Shows when connected */}
+            {isConnected && (
+              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-lg">
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  className="text-center px-6 max-w-md"
+                >
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.2, type: "spring" }}
+                    className="inline-block mb-6"
+                  >
+                    <div className="w-20 h-20 mx-auto bg-white rounded-3xl flex items-center justify-center shadow-2xl border-4 border-green-500/30 relative">
+                      <img src="/RE icon.png" alt="RemittEase" className="w-12 h-12" />
+                      <div className="absolute -top-2 -right-2 bg-green-500 rounded-full p-2">
+                        <CheckCircle className="w-5 h-5 text-white" />
+                      </div>
+                    </div>
+                  </motion.div>
+                  
+                  <h1 className="text-4xl font-bold text-white mb-3">Thank You!</h1>
+                  <p className="text-xl text-white/90 font-medium mb-2">Registration Successful</p>
+                  
+                  <div className="mb-6">
+                    <div className="inline-block px-5 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 mb-4">
+                      <p className="text-base text-white font-medium">Coming Soon</p>
+                    </div>
+                    <p className="text-base text-white/80">We're building the future of cross-border payments</p>
+                  </div>
+
+                  <a
+                    href="https://remittease.xyz/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl border border-white/30 text-white font-semibold transition-all"
+                  >
+                    Learn More About RemittEase
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                  
+                  <div className="flex gap-2 justify-center mt-6">
+                    <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
+                    <div className="w-2 h-2 bg-white/80 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+                  </div>
+                </motion.div>
+              </div>
+            )}
+
             <motion.div
               className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
               initial={{ opacity: 0 }}
@@ -258,7 +269,6 @@ export function AppSidebar({
               onClick={onMobileClose}
             />
 
-            {/* Sidebar */}
             <motion.div
               className="fixed left-0 top-0 z-50 h-full w-80 max-w-[85vw]"
               initial={{ x: '-100%' }}
@@ -270,34 +280,17 @@ export function AppSidebar({
                 <div className="pointer-events-none absolute inset-0 overflow-hidden">{backgroundShapes}</div>
 
                 <div className="relative bg-white/90 backdrop-blur-2xl shadow-2xl h-full flex flex-col">
-                  {/* Header */}
-                  <motion.div
-                    className="p-4 border-b border-gray-100"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                  >
+                  <motion.div className="p-4 border-b border-gray-100" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
                     <Logo />
 
                     {isConnected && activeAccount ? (
-                      <motion.div
-                        className="mt-4 p-4 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-lg"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.2 }}
-                      >
+                      <motion.div className="mt-4 p-4 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-lg" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}>
                         <div className="flex items-center gap-3 mb-3">
                           <div className="w-10 h-10 rounded-xl bg-white border border-gray-100 shadow-md flex items-center justify-center">
-                            <img
-                              src="/RE icon.png"
-                              alt="RemittEase Logo"
-                              className="w-6 h-6 object-contain"
-                            />
+                            <img src="/RE icon.png" alt="RemittEase Logo" className="w-6 h-6 object-contain" />
                           </div>
                           <div>
-                            <div className="text-sm font-semibold text-gray-900">
-                              {truncateAddress(activeAccount.address)}
-                            </div>
+                            <div className="text-sm font-semibold text-gray-900">{truncateAddress(activeAccount.address)}</div>
                             <div className="text-xs text-gray-500">My Wallet</div>
                           </div>
                         </div>
@@ -307,12 +300,7 @@ export function AppSidebar({
                         </div>
                       </motion.div>
                     ) : (
-                      <motion.div
-                        className="mt-4 p-4 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-lg"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.2 }}
-                      >
+                      <motion.div className="mt-4 p-4 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-lg" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}>
                         <div className="text-center">
                           <div className="text-base font-semibold text-gray-900 mb-2">Welcome to RemittEase</div>
                           <div className="text-sm text-gray-600 mb-4">Connect your wallet to get started</div>
@@ -321,57 +309,19 @@ export function AppSidebar({
                       </motion.div>
                     )}
 
-                    {/* Connection status */}
                     <motion.div className="mt-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-                      <div
-                        className={cn(
-                          'flex items-center gap-2 px-3 py-2 rounded-xl border text-sm',
-                          isConnected
-                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                            : 'bg-amber-50 border-amber-200 text-amber-700'
-                        )}
-                      >
-                        <motion.div
-                          className={cn('w-2 h-2 rounded-full', isConnected ? 'bg-emerald-500' : 'bg-amber-500')}
-                          animate={
-                            isConnected
-                              ? {
-                                  scale: [1, 1.3, 1],
-                                  boxShadow: [
-                                    '0 0 0 0 rgba(16, 185, 129, 0.5)',
-                                    '0 0 0 6px rgba(16, 185, 129, 0)',
-                                    '0 0 0 0 rgba(16, 185, 129, 0.5)',
-                                  ],
-                                }
-                              : {}
-                          }
-                          transition={{ duration: 2, repeat: isConnected ? Infinity : 0 }}
-                        />
+                      <div className={cn('flex items-center gap-2 px-3 py-2 rounded-xl border text-sm', isConnected ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-amber-50 border-amber-200 text-amber-700')}>
+                        <motion.div className={cn('w-2 h-2 rounded-full', isConnected ? 'bg-emerald-500' : 'bg-amber-500')} animate={isConnected ? { scale: [1, 1.3, 1], boxShadow: ['0 0 0 0 rgba(16, 185, 129, 0.5)', '0 0 0 6px rgba(16, 185, 129, 0)', '0 0 0 0 rgba(16, 185, 129, 0.5)'] } : {}} transition={{ duration: 2, repeat: isConnected ? Infinity : 0 }} />
                         <span className="font-semibold">{isConnected ? 'Connected & Secure' : 'Connect to continue'}</span>
                       </div>
                     </motion.div>
                   </motion.div>
 
-                  {/* Navigation */}
-                  <NavList
-                    nav={nav}
-                    itemIsActive={itemIsActive}
-                    onItemLinkClick={onMobileClose}
-                    onOpenWidget={openPannaWidget}
-                  />
+                  <NavList nav={nav} itemIsActive={itemIsActive} onItemLinkClick={onMobileClose} onOpenWidget={openPannaWidget} />
 
-                  {/* Footer */}
                   {isConnected && activeWallet && (
-                    <motion.div
-                      className="p-4 border-t border-gray-100"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.6 }}
-                    >
-                      <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 hover:text-red-800 transition-colors group border border-red-200 hover:border-red-300"
-                      >
+                    <motion.div className="p-4 border-t border-gray-100" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+                      <button onClick={handleLogout} className="w-full flex items-center gap-3 p-3 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 hover:text-red-800 transition-colors group border border-red-200 hover:border-red-300">
                         <div className="p-1.5 rounded-lg bg-red-100 group-hover:bg-red-200 transition-colors">
                           <LogOut className="w-4 h-4" />
                         </div>
@@ -391,49 +341,56 @@ export function AppSidebar({
     );
   }
 
-  // -------- Desktop variant (static)
+  // Desktop variant
   return (
-    <aside
-      style={themeStyle}
-      className={cn(
-        'h-full bg-white/90 backdrop-blur-xl border-r border-gray-100 shadow-lg',
-        isCollapsed ? 'w-16' : 'w-64'
+    <aside style={themeStyle} className={cn('h-full bg-white/90 backdrop-blur-xl border-r border-gray-100 shadow-lg relative', isCollapsed ? 'w-16' : 'w-64')}>
+      {/* Coming Soon Overlay - Desktop */}
+      {isConnected && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-lg">
+          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center px-4">
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring" }} className="inline-block mb-4">
+              <div className="w-16 h-16 mx-auto bg-white rounded-2xl flex items-center justify-center shadow-2xl border-4 border-green-500/30 relative">
+                <img src="/RE icon.png" alt="RemittEase" className="w-10 h-10" />
+                <div className="absolute -top-1 -right-1 bg-green-500 rounded-full p-1.5">
+                  <CheckCircle className="w-4 h-4 text-white" />
+                </div>
+              </div>
+            </motion.div>
+            
+            <h2 className="text-2xl font-bold text-white mb-2">Thank You!</h2>
+            <p className="text-sm text-white/90 font-medium mb-1">Registration Successful</p>
+            
+            <div className="mb-4">
+              <div className="inline-block px-4 py-1.5 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 mb-3">
+                <p className="text-xs text-white font-medium">Coming Soon</p>
+              </div>
+            </div>
+
+            <a href="https://remittease.xyz/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg border border-white/30 text-white text-xs font-semibold transition-all">
+              Learn More
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </motion.div>
+        </div>
       )}
-    >
+
       <div className="relative h-full flex flex-col">
-        {/* Background */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">{backgroundShapes}</div>
 
-        {/* Header / Collapse button */}
         <div className="relative z-10 p-4 border-b border-gray-100 flex items-center justify-between">
           {!isCollapsed ? <Logo /> : (
             <div className="w-8 h-8 bg-white border border-gray-100 shadow-md rounded-xl flex items-center justify-center">
-              <img
-                src="/RE icon.png"
-                alt="RemittEase"
-                className="w-5 h-5 object-contain"
-              />
+              <img src="/RE icon.png" alt="RemittEase" className="w-5 h-5 object-contain" />
             </div>
           )}
           {onToggleCollapse && (
-            <button
-              onClick={onToggleCollapse}
-              className="ml-2 rounded-lg border border-gray-200 px-2 py-1 text-xs bg-white hover:bg-gray-50 transition-colors"
-              aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
+            <button onClick={onToggleCollapse} className="ml-2 rounded-lg border border-gray-200 px-2 py-1 text-xs bg-white hover:bg-gray-50 transition-colors" aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
               {isCollapsed ? '›' : '‹'}
             </button>
           )}
         </div>
 
-        {/* Navigation */}
-        <NavList
-          nav={nav}
-          itemIsActive={itemIsActive}
-          onItemLinkClick={undefined}
-          onOpenWidget={openPannaWidget}
-          collapsed={isCollapsed}
-        />
+        <NavList nav={nav} itemIsActive={itemIsActive} onItemLinkClick={undefined} onOpenWidget={openPannaWidget} collapsed={isCollapsed} />
       </div>
     </aside>
   );
@@ -447,28 +404,12 @@ type NavListProps = {
   collapsed?: boolean;
 };
 
-function NavList({
-  nav,
-  itemIsActive,
-  onItemLinkClick,
-  onOpenWidget,
-  collapsed = false,
-}: NavListProps) {
+function NavList({ nav, itemIsActive, onItemLinkClick, onOpenWidget, collapsed = false }: NavListProps) {
   return (
     <div className="relative z-10 flex-1 p-4 overflow-y-auto">
       {nav.map((group, groupIndex) => (
-        <motion.div
-          key={group.title}
-          className={cn('mb-6', collapsed && 'mb-4')}
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 + groupIndex * 0.05 }}
-        >
-          {!collapsed && (
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-2">
-              {group.title}
-            </h3>
-          )}
+        <motion.div key={group.title} className={cn('mb-6', collapsed && 'mb-4')} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 + groupIndex * 0.05 }}>
+          {!collapsed && <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-2">{group.title}</h3>}
 
           <div className="space-y-2">
             {group.items.map((item, itemIndex) => {
@@ -476,60 +417,20 @@ function NavList({
               const Icon = item.icon;
 
               const content = (
-                <motion.div
-                  className={cn(
-                    'w-full rounded-xl transition-all duration-200 group relative',
-                    active
-                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
-                      : 'hover:bg-gray-50 text-gray-700'
-                  )}
-                  whileHover={active ? {} : { scale: 1.01, x: 2 }}
-                  whileTap={{ scale: 0.99 }}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + groupIndex * 0.1 + itemIndex * 0.05, duration: 0.2 }}
-                >
+                <motion.div className={cn('w-full rounded-xl transition-all duration-200 group relative', active ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg' : 'hover:bg-gray-50 text-gray-700')} whileHover={active ? {} : { scale: 1.01, x: 2 }} whileTap={{ scale: 0.99 }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + groupIndex * 0.1 + itemIndex * 0.05, duration: 0.2 }}>
                   <div className={cn('flex items-center gap-3 p-3', collapsed && 'justify-center p-3')}>
-                    <div
-                      className={cn(
-                        'p-2 rounded-lg transition-colors flex-shrink-0',
-                        active
-                          ? 'bg-white/20 text-white'
-                          : 'bg-white text-gray-600 group-hover:bg-purple-100 group-hover:text-purple-600 shadow-sm'
-                      )}
-                    >
+                    <div className={cn('p-2 rounded-lg transition-colors flex-shrink-0', active ? 'bg-white/20 text-white' : 'bg-white text-gray-600 group-hover:bg-purple-100 group-hover:text-purple-600 shadow-sm')}>
                       <Icon className="h-4 w-4" />
                     </div>
 
                     {!collapsed && (
                       <div className="flex-1 min-w-0">
-                        <div
-                          className={cn(
-                            'font-semibold text-sm mb-1',
-                            active
-                              ? 'text-white'
-                              : 'text-gray-900 group-hover:text-purple-600'
-                          )}
-                        >
-                          {item.title}
-                        </div>
-                        {item.description && (
-                          <div className={cn(
-                            'text-xs leading-tight',
-                            active ? 'text-white/80' : 'text-gray-500'
-                          )}>
-                            {item.description}
-                          </div>
-                        )}
+                        <div className={cn('font-semibold text-sm mb-1', active ? 'text-white' : 'text-gray-900 group-hover:text-purple-600')}>{item.title}</div>
+                        {item.description && <div className={cn('text-xs leading-tight', active ? 'text-white/80' : 'text-gray-500')}>{item.description}</div>}
                       </div>
                     )}
 
-                    {!collapsed && item.badge && (
-                      <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-full font-semibold shadow-sm flex-shrink-0">
-                        {item.badge}
-                      </span>
-                    )}
-
+                    {!collapsed && item.badge && <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-full font-semibold shadow-sm flex-shrink-0">{item.badge}</span>}
                     {collapsed && <span className="sr-only">{item.title}</span>}
                   </div>
                 </motion.div>
@@ -537,13 +438,7 @@ function NavList({
 
               if (item.opensWidget) {
                 return (
-                  <button
-                    key={item.title}
-                    type="button"
-                    onClick={() => onOpenWidget(item.opensWidget)}
-                    className="w-full text-left"
-                    aria-label={item.title}
-                  >
+                  <button key={item.title} type="button" onClick={() => onOpenWidget(item.opensWidget)} className="w-full text-left" aria-label={item.title}>
                     {content}
                   </button>
                 );

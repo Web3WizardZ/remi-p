@@ -166,6 +166,7 @@ export default function ImprovedRemittEaseWallet() {
   const [activeTab, setActiveTab] = React.useState<'overview' | 'accounts' | 'activity'>('overview');
   const [widgetOpen, setWidgetOpen] = React.useState(false);
   const openLockRef = React.useRef(false);
+  const [selectedUseCases, setSelectedUseCases] = React.useState<string[]>([]);
 
   const { disconnect: logout } = useLogout();
   const connectedAccounts = useConnectedAccounts();
@@ -281,6 +282,19 @@ export default function ImprovedRemittEaseWallet() {
 
   const truncateAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 
+  const useCases = [
+    { id: 'send', icon: Send, label: 'Send Money Globally', color: 'text-blue-400' },
+    { id: 'receive', icon: Download, label: 'Receive International Payments', color: 'text-green-400' },
+    { id: 'bills', icon: Globe, label: 'Pay Bills Across Borders', color: 'text-purple-400' },
+    { id: 'split', icon: Users, label: 'Split Expenses Internationally', color: 'text-orange-400' },
+  ];
+
+  const toggleUseCase = (id: string) => {
+    setSelectedUseCases(prev => 
+      prev.includes(id) ? prev.filter(caseId => caseId !== id) : [...prev, id]
+    );
+  };
+
   if (!isConnected) {
     return (
       <div style={themeStyle} className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center p-4">
@@ -314,71 +328,129 @@ export default function ImprovedRemittEaseWallet() {
 
   return (
     <div style={themeStyle} className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 relative">
-      {/* Thank You & Coming Soon Banner - Only shows when connected */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-lg">
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center px-6"
-        >
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="inline-block mb-8"
-          >
-            <div className="w-24 h-24 mx-auto bg-white rounded-3xl flex items-center justify-center shadow-2xl border-4 border-green-500/30 relative">
-              <img src="/RE icon.png" alt="RemittEase Logo" className="w-14 h-14 object-contain" />
-              <div className="absolute -top-2 -right-2 bg-green-500 rounded-full p-2">
-                <CheckCircle className="w-6 h-6 text-white" />
+      {/* Thank You & Coming Soon Banner */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm overflow-y-auto">
+        <div className="text-center px-4 max-w-2xl w-full py-6 my-auto">
+          <div>
+            <div className="inline-block mb-4">
+              <div className="w-20 h-20 mx-auto bg-white rounded-2xl flex items-center justify-center shadow-2xl border-2 border-green-500/30 relative">
+                <img src="/RE icon.png" alt="RemittEase Logo" className="w-12 h-12 object-contain" />
+                <div className="absolute -top-2 -right-2 bg-green-500 rounded-full p-1.5">
+                  <CheckCircle className="w-5 h-5 text-white" />
+                </div>
               </div>
             </div>
-          </motion.div>
-          
-          <motion.h1
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="text-5xl md:text-6xl font-bold text-white mb-4"
-          >
-            Thank You!
-          </motion.h1>
-          
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="text-2xl text-white/90 font-medium mb-2"
-          >
-            Registration Successful
-          </motion.p>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="mb-8"
-          >
-            <div className="inline-block px-6 py-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 mb-6">
-              <p className="text-lg text-white font-medium">Coming Soon</p>
-            </div>
-            <p className="text-lg text-white/80 max-w-md mx-auto">
-              We're working hard to bring you the best cross-border payment experience
+            
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+              Thank You!
+            </h1>
+            
+            <p className="text-lg text-white/90 font-medium mb-4">
+              Registration Successful
             </p>
-          </motion.div>
-          
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="flex gap-2 justify-center"
-          >
-            <div className="w-3 h-3 bg-white rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
-            <div className="w-3 h-3 bg-white/80 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-            <div className="w-3 h-3 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
-          </motion.div>
-        </motion.div>
+            
+            <div className="mb-6">
+              <div className="inline-block px-4 py-2 bg-white/10 rounded-full border border-white/20 mb-3">
+                <p className="text-sm text-white font-medium">Coming Soon</p>
+              </div>
+              <p className="text-sm text-white/80 max-w-md mx-auto mb-6">
+                Help us serve you better! Select what you'll use RemittEase for
+              </p>
+              
+              {/* Selection Section */}
+              <div className="bg-white/10 rounded-2xl p-4 border border-white/20 text-left max-w-lg mx-auto mb-4">
+                <h2 className="text-lg font-bold text-white mb-3 text-center">What Will You Use RemittEase For?</h2>
+                <p className="text-xs text-white/70 text-center mb-3">Select all that apply</p>
+                
+                <div className="space-y-2">
+                  {useCases.map((useCase) => (
+                    <button
+                      key={useCase.id}
+                      onClick={() => toggleUseCase(useCase.id)}
+                      className={cn(
+                        'w-full flex items-center gap-3 p-3 rounded-xl transition-colors border-2',
+                        selectedUseCases.includes(useCase.id)
+                          ? 'bg-white/20 border-white/40'
+                          : 'bg-white/5 border-white/10 hover:bg-white/10'
+                      )}
+                    >
+                      <div className={cn(
+                        'w-5 h-5 rounded-lg border-2 flex items-center justify-center',
+                        selectedUseCases.includes(useCase.id)
+                          ? 'border-white bg-white'
+                          : 'border-white/40'
+                      )}>
+                        {selectedUseCases.includes(useCase.id) && (
+                          <Check className="w-3 h-3 text-purple-600" />
+                        )}
+                      </div>
+                      <useCase.icon className={cn('w-4 h-4 flex-shrink-0', useCase.color)} />
+                      <span className="text-white font-medium text-sm text-left flex-1">
+                        {useCase.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Screenshot & Share Instructions */}
+              {selectedUseCases.length > 0 && (
+                <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl p-4 border-2 border-blue-400/40 max-w-lg mx-auto">
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    <Share className="w-5 h-5 text-blue-300" />
+                    <h3 className="text-base font-bold text-white">Share Your Selection!</h3>
+                  </div>
+                  
+                  <div className="space-y-2 text-left">
+                    <div className="flex items-start gap-2 p-2 bg-white/10 rounded-lg">
+                      <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-xs">
+                        1
+                      </div>
+                      <div>
+                        <p className="text-white font-medium text-xs">📸 Take a Screenshot</p>
+                        <p className="text-white/70 text-xs">Capture this screen</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-2 p-2 bg-white/10 rounded-lg">
+                      <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-xs">
+                        2
+                      </div>
+                      <div>
+                        <p className="text-white font-medium text-xs">🐦 Share on X</p>
+                        <p className="text-white/70 text-xs">
+                          Tag <span className="text-blue-300 font-mono">@remitt_ease</span>
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-2 p-2 bg-white/10 rounded-lg">
+                      <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-xs">
+                        3
+                      </div>
+                      <div>
+                        <p className="text-white font-medium text-xs">🎁 Get Early Access</p>
+                        <p className="text-white/70 text-xs">Be first to try RemittEase!</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-3 p-2 bg-white/5 rounded-lg border border-white/20">
+                    <p className="text-xs text-white/60 text-center">
+                      Selected: <span className="text-white font-semibold">{selectedUseCases.length}</span> use case{selectedUseCases.length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex gap-2 justify-center mt-4">
+              <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+              <div className="w-1.5 h-1.5 bg-white/80 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
+              <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="fixed top-4 right-4 z-40 space-y-2 max-w-sm" role="region" aria-label="Notifications">

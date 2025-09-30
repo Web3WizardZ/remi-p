@@ -30,24 +30,12 @@ const themeStyle = {
 const cn = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(' ');
 
-const useMotionPreference = () => {
-  const [prefersReduced, setPrefersReduced] = React.useState(false);
-  
-  React.useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReduced(mediaQuery.matches);
-    const handler = (e: MediaQueryListEvent) => setPrefersReduced(e.matches);
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
-  }, []);
-
-  return React.useMemo(() => ({
-    initial: prefersReduced ? {} : { opacity: 0, y: 20 },
-    animate: prefersReduced ? {} : { opacity: 1, y: 0 },
-    transition: prefersReduced ? {} : { duration: 0.3 },
-    hover: prefersReduced ? {} : { scale: 1.02, transition: { duration: 0.2 } },
-    tap: prefersReduced ? {} : { scale: 0.98, transition: { duration: 0.1 } },
-  }), [prefersReduced]);
+const motionConfig = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.3 },
+  hover: { scale: 1.02, transition: { duration: 0.2 } },
+  tap: { scale: 0.98, transition: { duration: 0.1 } },
 };
 
 interface ButtonProps {
@@ -61,12 +49,10 @@ interface ButtonProps {
   'aria-label'?: string;
 }
 
-const Button: React.FC<ButtonProps> = ({
+const Button: React.FC<ButtonProps> = React.memo(({
   children, className, variant = 'primary', size = 'default',
   loading, disabled, onClick, 'aria-label': ariaLabel,
 }) => {
-  const motionProps = useMotionPreference();
-  
   const sizeClasses = {
     sm: 'px-3 py-2 text-sm h-9 min-w-[44px]',
     default: 'px-4 py-3 text-sm h-12 min-w-[44px]',
@@ -87,34 +73,25 @@ const Button: React.FC<ButtonProps> = ({
         variantClasses[variant],
         className
       )}
-      whileHover={disabled || loading ? {} : motionProps.hover}
-      whileTap={disabled || loading ? {} : motionProps.tap}
+      whileHover={disabled || loading ? {} : motionConfig.hover}
+      whileTap={disabled || loading ? {} : motionConfig.tap}
       disabled={loading || disabled}
       onClick={onClick}
       aria-label={ariaLabel}
-      initial={motionProps.initial}
-      animate={motionProps.animate}
-      transition={motionProps.transition}
     >
       {loading && <RefreshCw className="w-4 h-4 animate-spin" />}
       {!loading && children}
     </motion.button>
   );
-};
+});
 
-const Card: React.FC<{ className?: string; children: React.ReactNode }> = ({ className, children }) => {
-  const motionProps = useMotionPreference();
+const Card: React.FC<{ className?: string; children: React.ReactNode }> = React.memo(({ className, children }) => {
   return (
-    <motion.div
-      className={cn('bg-white rounded-2xl shadow-lg border border-gray-100 p-6', className)}
-      initial={motionProps.initial}
-      animate={motionProps.animate}
-      transition={motionProps.transition}
-    >
+    <div className={cn('bg-white rounded-2xl shadow-lg border border-gray-100 p-6', className)}>
       {children}
-    </motion.div>
+    </div>
   );
-};
+});
 
 const Skeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
   <div className={cn('animate-pulse bg-gray-200 rounded-lg', className)} />
@@ -270,7 +247,7 @@ export default function ImprovedRemittEaseWallet() {
     setTimeout(() => setRefreshing(false), 1000);
   }, [refetchBalance, refreshing, addToast]);
 
-  const formatUSD = (amount?: number | null) => {
+  const formatUSD = React.useCallback((amount?: number | null) => {
     if (amount === undefined || amount === null || Number.isNaN(amount)) return null;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -278,9 +255,9 @@ export default function ImprovedRemittEaseWallet() {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(amount);
-  };
+  }, []);
 
-  const truncateAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  const truncateAddress = React.useCallback((addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`, []);
 
   const useCases = [
     { id: 'send', icon: Send, label: 'Send Money Globally', color: 'text-blue-400' },
@@ -289,11 +266,11 @@ export default function ImprovedRemittEaseWallet() {
     { id: 'split', icon: Users, label: 'Split Expenses Internationally', color: 'text-orange-400' },
   ];
 
-  const toggleUseCase = (id: string) => {
+  const toggleUseCase = React.useCallback((id: string) => {
     setSelectedUseCases(prev => 
       prev.includes(id) ? prev.filter(caseId => caseId !== id) : [...prev, id]
     );
-  };
+  }, []);
 
   if (!isConnected) {
     return (
@@ -485,11 +462,7 @@ export default function ImprovedRemittEaseWallet() {
       </div>
 
       <div className="max-w-4xl mx-auto p-4 sm:p-6">
-        <motion.header
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="flex items-center justify-between mb-6 bg-white/80 backdrop-blur-sm p-4 rounded-2xl shadow-lg border border-white/20"
-        >
+        <header className="flex items-center justify-between mb-6 bg-white/80 backdrop-blur-sm p-4 rounded-2xl shadow-lg border border-white/20">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg border border-gray-100">
               <img src="/RE icon.png" alt="RemittEase Logo" className="w-7 h-7 object-contain" />
@@ -525,7 +498,7 @@ export default function ImprovedRemittEaseWallet() {
               <span className="hidden sm:inline ml-2">Sign Out</span>
             </Button>
           </div>
-        </motion.header>
+        </header>
 
         <Card className="mb-6 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600" />
@@ -632,13 +605,7 @@ export default function ImprovedRemittEaseWallet() {
           </div>
         </Card>
 
-        <motion.section
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="grid grid-cols-4 gap-3 mb-6"
-          aria-label="Main actions"
-        >
+        <section className="grid grid-cols-4 gap-3 mb-6" aria-label="Main actions">
           <Button
             className="col-span-2 h-20 bg-gradient-to-r from-blue-600 to-indigo-600 flex-col"
             onClick={() => openPannaWidget('Send')}
@@ -655,7 +622,7 @@ export default function ImprovedRemittEaseWallet() {
             <ArrowDownLeft className="w-5 h-5 mb-2" />
             <span className="text-sm">Add Funds</span>
           </Button>
-        </motion.section>
+        </section>
 
         <nav className="flex bg-gray-100 p-1 rounded-xl mb-6" role="tablist">
           {[

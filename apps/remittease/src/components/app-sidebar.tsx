@@ -232,25 +232,52 @@ export function AppSidebar({
                     </div>
                   </motion.div>
                   
-                  <h1 className="text-4xl font-bold text-white mb-3">Thank You!</h1>
-                  <p className="text-xl text-white/90 font-medium mb-2">Registration Successful</p>
+                  <motion.h1
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="text-4xl font-bold text-white mb-3"
+                  >
+                    Thank You!
+                  </motion.h1>
                   
-                  <div className="mb-6">
+                  <motion.p
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="text-xl text-white/90 font-medium mb-2"
+                  >
+                    Registration Successful
+                  </motion.p>
+                  
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="mb-6"
+                  >
                     <div className="inline-block px-5 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 mb-4">
                       <p className="text-base text-white font-medium">Coming Soon</p>
                     </div>
-                    <p className="text-base text-white/80">We're building the future of cross-border payments</p>
-                  </div>
+                    <p className="text-base text-white/80 max-w-sm mx-auto">
+                      We're working hard to bring you the best cross-border payment experience
+                    </p>
+                  </motion.div>
 
-                  <a
+                  <motion.a
                     href="https://remittease.xyz/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl border border-white/30 text-white font-semibold transition-all"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl text-white font-semibold transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.6 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                   >
                     Learn More About RemittEase
                     <ExternalLink className="w-4 h-4" />
-                  </a>
+                  </motion.a>
                   
                   <div className="flex gap-2 justify-center mt-6">
                     <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
@@ -347,8 +374,18 @@ export function AppSidebar({
       {/* Coming Soon Overlay - Desktop */}
       {isConnected && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-lg">
-          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center px-4">
-            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring" }} className="inline-block mb-4">
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0, y: 20 }} 
+            animate={{ scale: 1, opacity: 1, y: 0 }} 
+            transition={{ duration: 0.5 }}
+            className="text-center px-4"
+          >
+            <motion.div 
+              initial={{ scale: 0 }} 
+              animate={{ scale: 1 }} 
+              transition={{ delay: 0.2, type: "spring", stiffness: 200 }} 
+              className="inline-block mb-4"
+            >
               <div className="w-16 h-16 mx-auto bg-white rounded-2xl flex items-center justify-center shadow-2xl border-4 border-green-500/30 relative">
                 <img src="/RE icon.png" alt="RemittEase" className="w-10 h-10" />
                 <div className="absolute -top-1 -right-1 bg-green-500 rounded-full p-1.5">
@@ -357,19 +394,52 @@ export function AppSidebar({
               </div>
             </motion.div>
             
-            <h2 className="text-2xl font-bold text-white mb-2">Thank You!</h2>
-            <p className="text-sm text-white/90 font-medium mb-1">Registration Successful</p>
+            <motion.h2
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-2xl font-bold text-white mb-2"
+            >
+              Thank You!
+            </motion.h2>
             
-            <div className="mb-4">
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="text-sm text-white/90 font-medium mb-1"
+            >
+              Registration Successful
+            </motion.p>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="mb-4"
+            >
               <div className="inline-block px-4 py-1.5 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 mb-3">
                 <p className="text-xs text-white font-medium">Coming Soon</p>
               </div>
-            </div>
+              <p className="text-xs text-white/80 max-w-[180px] mx-auto">
+                We're working hard to bring you the best cross-border payment experience
+              </p>
+            </motion.div>
 
-            <a href="https://remittease.xyz/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg border border-white/30 text-white text-xs font-semibold transition-all">
+            <motion.a 
+              href="https://remittease.xyz/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-lg text-white text-xs font-semibold transition-all shadow-lg hover:shadow-xl"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.6 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
               Learn More
               <ExternalLink className="w-3 h-3" />
-            </a>
+            </motion.a>
           </motion.div>
         </div>
       )}

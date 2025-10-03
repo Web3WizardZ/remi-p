@@ -305,7 +305,6 @@ export default function ImprovedRemittEaseWallet() {
 
   return (
     <div style={themeStyle} className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 relative">
-      {/* Thank You & Coming Soon Banner */}
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm overflow-y-auto">
         <div className="text-center px-4 max-w-2xl w-full py-6 my-auto">
           <div>
@@ -334,7 +333,6 @@ export default function ImprovedRemittEaseWallet() {
                 Help us serve you better! Select what you'll use RemittEase for
               </p>
               
-              {/* Selection Section */}
               <div className="bg-white/10 rounded-2xl p-4 border border-white/20 text-left max-w-lg mx-auto mb-4">
                 <h2 className="text-lg font-bold text-white mb-3 text-center">What Will You Use RemittEase For?</h2>
                 <p className="text-xs text-white/70 text-center mb-3">Select all that apply</p>
@@ -370,7 +368,6 @@ export default function ImprovedRemittEaseWallet() {
                 </div>
               </div>
 
-              {/* Screenshot & Share Instructions */}
               {selectedUseCases.length > 0 && (
                 <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl p-4 border-2 border-blue-400/40 max-w-lg mx-auto">
                   <div className="flex items-center justify-center gap-2 mb-3">

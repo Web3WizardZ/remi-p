@@ -863,7 +863,7 @@ export default function ImprovedRemittEaseWallet() {
                   </h4>
                   <p className="text-xs max-w-xs mx-auto">
                     Once you start sending or receiving money, your
-                    transaction history will appear here.
+                    transaction history will appear here...
                   </p>
                 </div>
               </Card>
